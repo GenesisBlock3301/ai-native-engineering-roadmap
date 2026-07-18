@@ -1,5 +1,3 @@
-#%%
-
 ## Temperature
 
 Temperature controls **how creative or how strict** the AI’s answer is.
