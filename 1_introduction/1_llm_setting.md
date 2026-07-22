@@ -1,3 +1,5 @@
+# LLM Sampling Settings
+
 ## Temperature
 
 Temperature controls **how creative or how strict** the AI’s answer is.
@@ -125,4 +127,3 @@ It tells the AI: **Say something new.**
 | Presence Penalty  | Encourage new ideas              |
 
 ---
-

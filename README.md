@@ -45,17 +45,7 @@ For every topic, follow this cycle:
 
 ### Example: Learning Attention
 
-**Old way:** Watch a 3-hour video → Copy code → Forget.
-
-**2026 way:**
-1. Ask: *Why was attention invented?*
-2. Then: *What problem does RNN have?*
-3. Then: *Why does attention solve that?*
-4. Ask AI to draw attention visually.
-5. Ask: *Explain like I'm a backend engineer.*
-6. Read the PyTorch implementation — don't write it, read it.
-7. Ask: *Why is this line here?*
-8. Repeat until you can explain every line.
+See [3_modern_ai](3_modern_ai/README.md#worked-example-learning-attention-the-2026-way) for a full worked example applying this loop to learning Transformers/Attention.
 
 ## Don't Become a Coder. Become a Reviewer.
 
@@ -85,30 +75,14 @@ It's: **"I know exactly what should be built and why."**
 
 ## What to Learn Deeply
 
-These topics deserve real conceptual understanding, not memorization.
+Real conceptual understanding beats memorization, everywhere in this roadmap — not formulas or framework APIs, but *why* each thing exists. The full topic-by-topic depth (problem it solves → how it works → when to use it) lives in each phase folder, next to the hands-on material — this is just the map:
 
-**Mathematics** — not formulas, but vectors, embeddings, probability, optimization, gradient intuition.
-
-**Machine Learning** — why XGBoost beats linear regression sometimes, why overfitting happens, bias vs. variance, feature engineering, evaluation.
-
-**Deep Learning** — why CNNs work, why transformers replaced RNNs, why LayerNorm exists, why residual connections matter, why attention scales. Don't memorize equations.
-
-**LLMs** — tokenization, embeddings, inference, KV cache, context window, hallucination, temperature, sampling, reasoning, fine-tuning, alignment. These are interview questions now.
-
-**RAG** — don't memorize LangChain APIs, understand the pipeline:
-
-```
-Documents → Chunking → Embedding → Vector Search → Retrieval → Re-ranking → Prompt → LLM → Answer
-```
-
-If you understand that pipeline, frameworks become much easier to learn.
-
-**Agents** — planning, memory, tool calling, MCP, reflection, state, failures, recovery. Framework syntax changes; these concepts remain.
-
-**MLOps** — deployment, latency, GPU memory, monitoring, drift, versioning, scaling, cost, Docker, Kubernetes. Many engineers know how to build a demo; fewer know how to run it reliably.
-
-- **Docker** — packages a model, its dependencies, and runtime into one reproducible container, so "works on my machine" becomes "works everywhere."
-- **Kubernetes** — orchestrates those containers in production: autoscaling inference pods with traffic, scheduling GPU resources, rolling out new model versions without downtime, and self-healing when a pod crashes.
+| Subject | Covers | Full depth |
+| --- | --- | --- |
+| Mathematics & Machine Learning | Vectors, embeddings, probability, optimization, gradient intuition, bias vs. variance, feature engineering, evaluation | [2_ai_foundations](2_ai_foundations/README.md) |
+| Deep Learning & LLMs | CNNs, residual connections, LayerNorm, why transformers replaced RNNs, tokenization, KV cache, hallucination, fine-tuning, alignment | [3_modern_ai](3_modern_ai/README.md) |
+| RAG & Agents | The retrieval pipeline, planning, memory, tool calling, MCP, reflection, failure recovery | [4_applied_ai](4_applied_ai/README.md) |
+| MLOps & Evaluation | Deployment, latency, GPU memory, monitoring, drift, versioning, scaling, cost, Docker, Kubernetes | [5_production_ai](5_production_ai/README.md) |
 
 ## A Practical Study Session (2 Hours)
 
@@ -177,12 +151,14 @@ If you can consistently explain why every major architectural choice was made an
 
 ## Repository Structure
 
-```
-1_introduction/          Prompting basics, LLM sampling settings (temperature, top_p, penalties, etc.)
-2_ai_foundations/        Math intuition → ML intuition → PyTorch concepts.
-3_modern_ai/             Transformers → Hugging Face → LLM inference → Fine-tuning concepts.
-4_applied_ai/            RAG → Vector databases → Agent systems → MCP.
-5_production_ai/         Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability.
-6_portfolio/             5–6 production-grade AI systems, architected by me and implemented faster with AI.
-7_interview_readiness/   AI system design, debugging, model trade-offs, performance optimization, behavioral interviews.
-```
+Each folder's README has the full topic breakdown for that phase — problem it solves, how it works, when to use it.
+
+| Folder | Covers |
+| --- | --- |
+| [1_introduction/](1_introduction/README.md) | Prompting basics, prompt engineering techniques (zero-shot, few-shot, CoT, ReAct, etc.), LLM sampling settings (temperature, top_p, penalties, etc.) |
+| [2_ai_foundations/](2_ai_foundations/README.md) | Math intuition → ML intuition → PyTorch concepts |
+| [3_modern_ai/](3_modern_ai/README.md) | Transformers → Hugging Face → LLM inference → Fine-tuning concepts |
+| [4_applied_ai/](4_applied_ai/README.md) | RAG → Vector databases → Agent systems → MCP |
+| [5_production_ai/](5_production_ai/README.md) | Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability |
+| [6_portfolio/](6_portfolio/README.md) | 5–6 production-grade AI systems, architected by me and implemented faster with AI |
+| [7_interview_readiness/](7_interview_readiness/README.md) | AI system design, debugging, model trade-offs, performance optimization, behavioral interviews |
