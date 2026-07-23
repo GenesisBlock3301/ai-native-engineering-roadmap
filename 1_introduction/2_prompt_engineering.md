@@ -97,7 +97,7 @@ Split one big task into a few small prompts, and feed each answer into the next 
 **Example:** `Pull the key facts out of this article` → `Turn those facts into 3 bullet points` → `Rewrite the bullets in a formal tone`.
 
 * **Problem it fixes:** one giant prompt trying to do everything at once usually does each part worse. Small mistakes in the middle get buried, and you can't fix just one step.
-* **When to use it:** any job with more than one stage — draft, then check, then fix; or pull out data, then sum it up, then format it. This is the first step toward a real pipeline — see [5_production_ai](../5_production_ai/README.md).
+* **When to use it:** any job with more than one stage — draft, then check, then fix; or pull out data, then sum it up, then format it. This is the first step toward a real pipeline — see [5_data_engineering_infra](../5_data_engineering_infra/README.md).
 
 ---
 

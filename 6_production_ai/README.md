@@ -1,4 +1,4 @@
-# Production AI (Weeks 23–30)
+# Production AI (Weeks 31–38)
 
 Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability.
 
@@ -23,4 +23,4 @@ Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability.
 
 ## Next
 
-[6_portfolio](../6_portfolio/README.md) — apply evaluation, deployment, and monitoring to systems you design end to end.
+[7_portfolio](../7_portfolio/README.md) — apply evaluation, deployment, and monitoring to systems you design end to end.

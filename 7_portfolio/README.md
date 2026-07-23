@@ -1,4 +1,4 @@
-# Portfolio (Weeks 31–40)
+# Portfolio (Weeks 39–48)
 
 Build 5–6 production-grade AI systems, making the architectural decisions and using AI coding tools to implement faster.
 
@@ -40,4 +40,4 @@ If you can explain why every major architectural choice was made, and how the sy
 
 ## Next
 
-[7_interview_readiness](../7_interview_readiness/README.md) — be able to explain these same architectural decisions out loud, under question, on the spot.
+[8_interview_readiness](../8_interview_readiness/README.md) — be able to explain these same architectural decisions out loud, under question, on the spot.

@@ -37,7 +37,7 @@ Look things up (RAG — see 4_applied_ai)
       ↓  (needs to take actions or use tools)
 Think + Act (ReAct / agent — see 4_applied_ai)
       ↓  (prompting is too slow or costs too much at scale)
-Fine-tuning (see 3_modern_ai, 5_production_ai)
+Fine-tuning (see 3_modern_ai, 6_production_ai)
 ```
 
 Each step down costs more — more time, more money, more moving parts, more ways to break. Jumping straight to "let's fine-tune" or "let's build an agent" when a few examples would have worked is a common, costly mistake. Decide with real tests on real cases, not a feeling.

@@ -31,4 +31,4 @@ Build a minimal RAG pipeline over a handful of your own documents by hand first 
 
 ## Next
 
-[5_production_ai](../5_production_ai/README.md) — a RAG pipeline or agent that only works in a notebook isn't shippable; that's what production AI covers.
+[5_data_engineering_infra](../5_data_engineering_infra/README.md) — the retrieval pipeline above is a toy until it's backed by real data pipelines, orchestration, and infra at scale.

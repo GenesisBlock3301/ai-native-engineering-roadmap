@@ -1,4 +1,4 @@
-# Interview Readiness (Weeks 41–48)
+# Interview Readiness (Weeks 49–56)
 
 AI system design, debugging, model trade-offs, performance optimization, and behavioral interviews.
 
@@ -9,15 +9,16 @@ For every topic in this roadmap, be ready to answer exactly three things:
 2. How does it work conceptually?
 3. When should I use it, versus the alternative?
 
-If you can answer those three cleanly, out loud, without notes, for every topic from [2_ai_foundations](../2_ai_foundations/README.md) through [6_portfolio](../6_portfolio/README.md), you're ready.
+If you can answer those three cleanly, out loud, without notes, for every topic from [2_ai_foundations](../2_ai_foundations/README.md) through [7_portfolio](../7_portfolio/README.md), you're ready.
 
 ## What's Actually Being Asked Now
 
 These used to be advanced topics; they're baseline interview questions today:
 - Tokenization, KV cache, context window, hallucination, fine-tuning vs. alignment — see [3_modern_ai](../3_modern_ai/README.md).
 - The RAG pipeline end to end, and agent failure/recovery — see [4_applied_ai](../4_applied_ai/README.md).
-- Deployment, latency, drift, and cost trade-offs — see [5_production_ai](../5_production_ai/README.md).
-- Why you made each architectural decision in your own portfolio projects — see [6_portfolio](../6_portfolio/README.md). The systems you built yourself are the questions you're least likely to be caught off guard by.
+- Data pipeline design, batch vs. streaming, and workflow orchestration trade-offs — see [5_data_engineering_infra](../5_data_engineering_infra/README.md).
+- Deployment, latency, drift, and cost trade-offs — see [6_production_ai](../6_production_ai/README.md).
+- Why you made each architectural decision in your own portfolio projects — see [7_portfolio](../7_portfolio/README.md). The systems you built yourself are the questions you're least likely to be caught off guard by.
 
 ## System Design Reflex
 
