@@ -84,6 +84,7 @@ Real conceptual understanding beats memorization, everywhere in this roadmap —
 | RAG & Agents | The retrieval pipeline, planning, memory, tool calling, MCP, reflection, failure recovery | [4_applied_ai](4_applied_ai/README.md) |
 | Data Engineering & Infra | Data pipelines, Spark, Kafka, Airflow, workflow orchestration, Terraform, CI/CD | [5_data_engineering_infra](5_data_engineering_infra/README.md) |
 | MLOps & Evaluation | Deployment, latency, GPU memory, monitoring, drift, versioning, scaling, cost, Docker, Kubernetes | [6_production_ai](6_production_ai/README.md) |
+| Product Engineering | Deciding what's worth building, evals as the spec, designing for wrong answers, cost per user, pricing, staged rollout | [7_product_engineering](7_product_engineering/README.md) |
 
 ## A Practical Study Session (2 Hours)
 
@@ -132,15 +133,16 @@ Review → Debug → Optimize → Deploy → Monitor → Iterate
 
 ## A Roadmap Tailored to My Background
 
-Given my experience with backend engineering, Go, AWS, microservices, and some ML fundamentals, the next 10–13 months are structured around understanding first, implementation second:
+Given my experience with backend engineering, Go, AWS, microservices, and some ML fundamentals, the next 12–14 months are structured around understanding first, implementation second:
 
 1. **Weeks 1–6 — AI Foundations:** Math intuition → ML intuition → PyTorch concepts.
 2. **Weeks 7–14 — Modern AI:** Transformers → Hugging Face → LLM inference → Fine-tuning concepts.
 3. **Weeks 15–22 — Applied AI:** RAG → Vector databases → Agent systems → MCP.
 4. **Weeks 23–30 — Data Engineering & Infra:** Data pipelines → Spark & Kafka → Airflow (workflow orchestration) → Terraform → CI/CD.
 5. **Weeks 31–38 — Production AI:** Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability.
-6. **Weeks 39–48 — Portfolio:** Build 5–6 production-grade AI systems, making the architectural decisions and using AI coding tools to implement faster.
-7. **Weeks 49–56 — Interview Readiness:** AI system design, debugging, model trade-offs, performance optimization, and behavioral interviews.
+6. **Weeks 39–42 — Product Engineering:** Deciding what to build → Evals as the spec → Designing for wrong answers → Cost per user & pricing → Staged rollout.
+7. **Weeks 43–52 — Portfolio:** Build 5–6 production-grade AI systems, making the architectural decisions and using AI coding tools to implement faster.
+8. **Weeks 53–60 — Interview Readiness:** AI system design, debugging, model trade-offs, performance optimization, and behavioral interviews.
 
 One caution, though: don't let AI become a crutch. If AI writes all the code and you never inspect or modify it, your understanding will plateau. A good rule:
 
@@ -163,5 +165,6 @@ Each folder's README has the full topic breakdown for that phase — problem it 
 | [4_applied_ai/](4_applied_ai/README.md) | RAG → Vector databases → Agent systems → MCP |
 | [5_data_engineering_infra/](5_data_engineering_infra/README.md) | Data pipelines → Spark & Kafka → Airflow (workflow orchestration) → Terraform → CI/CD |
 | [6_production_ai/](6_production_ai/README.md) | Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability |
-| [7_portfolio/](7_portfolio/README.md) | 5–6 production-grade AI systems, architected by me and implemented faster with AI |
-| [8_interview_readiness/](8_interview_readiness/README.md) | AI system design, debugging, model trade-offs, performance optimization, behavioral interviews |
+| [7_product_engineering/](7_product_engineering/README.md) | Deciding what to build → Evals as the spec → Designing for wrong answers → Cost per user & pricing → Staged rollout |
+| [8_portfolio/](8_portfolio/README.md) | 5–6 production-grade AI systems, architected by me and implemented faster with AI |
+| [9_interview_readiness/](9_interview_readiness/README.md) | AI system design, debugging, model trade-offs, performance optimization, behavioral interviews |

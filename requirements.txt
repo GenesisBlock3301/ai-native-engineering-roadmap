@@ -6,3 +6,8 @@ matplotlib==3.10.7
 scikit-learn==1.7.2
 xgboost==3.1.1
 pandas==2.3.3
+
+# 3_modern_ai
+tiktoken==0.13.0
+torch==2.13.0
+transformers==5.14.1

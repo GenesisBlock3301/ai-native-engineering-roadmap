@@ -27,7 +27,7 @@ Follow the [Learning Loop](../README.md#the-learning-loop): understand → pictu
 
 ## Notebooks
 
-- [gradient_descent_from_scratch.ipynb](gradient_descent_from_scratch.ipynb) — builds gradient descent by hand (NumPy only, no autograd): loss, gradients, the training loop, and what happens when the learning rate is too small vs. too large.
+- [gradient_descent_from_scratcwhh.ipynb](gradient_descent_from_scratch.ipynb) — builds gradient descent by hand (NumPy only, no autograd): loss, gradients, the training loop, and what happens when the learning rate is too small vs. too large.
 - [xgboost_vs_linear_regression.ipynb](xgboost_vs_linear_regression.ipynb) — fits both models on the same non-linear dataset, showing linear regression's underfit, a well-tuned XGBoost, and a deliberately overfit XGBoost, to make bias vs. variance concrete.
 
 Both end with a "Your turn" section — change the code, guess what will happen before you run it, then explain the idea back in your own words.

@@ -23,4 +23,4 @@ Evaluation → MLOps → AWS Bedrock/SageMaker → vLLM → Observability.
 
 ## Next
 
-[7_portfolio](../7_portfolio/README.md) — apply evaluation, deployment, and monitoring to systems you design end to end.
+[7_product_engineering](../7_product_engineering/README.md) — you can now build it, run it, and measure it. That phase is about deciding whether it was worth building at all, and what it costs per user once it is live.

@@ -1,4 +1,4 @@
-# Portfolio (Weeks 39–48)
+# Portfolio (Weeks 43–52)
 
 Build 5–6 production-grade AI systems, making the architectural decisions and using AI coding tools to implement faster.
 
@@ -9,6 +9,8 @@ AI writes → You review → You improve → You optimize → You evaluate → Y
 ```
 
 That's already how many senior engineers work. The goal here isn't to type more code — it's to make, and be able to defend, every architectural decision in a system AI helped you build faster.
+
+Each project starts with the decision packet from [7_product_engineering](../7_product_engineering/6_shipping_and_practice.md#mini-project-for-this-phase) — the one-page spec, the eval set, the cost model, the failure design — not with the architecture diagram. "Business Problem" is the first box in the loop below, and that packet is how you fill it in with numbers.
 
 Daily loop for each project:
 
@@ -40,4 +42,4 @@ If you can explain why every major architectural choice was made, and how the sy
 
 ## Next
 
-[8_interview_readiness](../8_interview_readiness/README.md) — be able to explain these same architectural decisions out loud, under question, on the spot.
+[9_interview_readiness](../9_interview_readiness/README.md) — be able to explain these same architectural decisions out loud, under question, on the spot.
