@@ -252,7 +252,45 @@ So we keep them. That is the KV cache: **trade memory for compute.** Use more me
 - **How:** after each step, add the new token's K and V to a buffer. Reuse it forever.
 - **The catch:** that buffer sits in expensive GPU memory, and it grows with **every token × every user**.
 
-> **ShopBot without a KV cache.** Token 1 of the reply re-reads 2,500 tokens. Token 120 re-reads 2,619. Added up, that is ~313,000 tokens of repeated work instead of 120. The reply would take about **40 seconds** instead of 1.2. The cache is not an optimisation. It is what makes chat possible at all.
+> **ShopBot without a KV cache.** Token 1 of the reply re-reads 2,500 tokens. Token 120 re-reads 2,619. Added up, that is **307,140** tokens of repeated work instead of 120.
+>
+> And every one of those 120 steps is a **full prefill** — the same 2,500-token pass that took ~150 ms back in Part 2. So the reply costs `120 × 150 ms` ≈ **18 seconds** instead of 1.2. The cache is not an optimisation. It is what makes chat possible at all.
+
+## Where that 307,140 comes from — and where the `n²` comes from
+
+The re-read lengths go up by exactly **1** each step: 2,500 → 2,501 → 2,502 → … → 2,619. Evenly spaced lists have a shortcut, so you never add 120 numbers by hand.
+
+**Pair them from both ends:**
+
+```
+2,500 + 2,619 = 5,119
+2,501 + 2,618 = 5,119
+2,502 + 2,617 = 5,119
+        ...
+```
+
+Every pair gives the same total, because each step **up** on the left is cancelled by a step **down** on the right. 120 numbers make 60 pairs, each worth 5,119:
+
+```
+n/2   ×   (first + last)   =   60 × 5,119   =   307,140
+ ↑            ↑
+pairs     pair value
+```
+
+**Check it a second way.** For an evenly spaced list the average is just `(first + last) / 2` = 2,559.5. Times 120 items = **307,140**. Same answer. Use "average × count" if the pairing feels abstract — it is harder to get wrong.
+
+**Now run the same formula on a prompt of any length `n`:**
+
+```
+1 + 2 + 3 + ... + n   =   n(n+1)/2   ≈   n²/2
+```
+
+That is the `n²` at the top of Part 3. It is not a hand-wave — it is this series. Double the context and the wasted work goes up **4×**, not 2×.
+
+- **The cache turns that `n²/2` back into `n`.** One token in per step, forever.
+- **When the shortcut does not apply:** only if growth per step is not constant. Grows by 2 per step → still arithmetic, still works. **Doubles** each step → geometric, different formula, and a far nastier curve.
+
+> **Pick this in situation X:** reach for `n/2 × (first + last)` whenever a cost grows by a fixed amount per step — cache size, tokens re-read, rows scanned. If the cost *multiplies* per step instead, stop and check for a geometric blow-up before you size the machine.
 
 ## The formula to remember
 
@@ -287,16 +325,104 @@ Now you can see the real reason GQA exists. (GQA = grouped query attention: many
 
 # Part 4 — HOW Servers Go Fast
 
-These all live in the scheduler from Map A. None of them change the model.
+Same GPU. Same model. Nothing retrained. The whole job of this part is one sentence: **stop wasting what you already paid for.**
+
+## The two walls everything here is fighting
+
+Parts 2 and 3 built them. Every trick below knocks a piece off one or the other.
+
+```
+   WALL 1 — THE GPU SITS IDLE           WALL 2 — THE MEMORY IS FULL
+   ──────────────────────────           ───────────────────────────
+   Move 16 GB of weights.               62 GB free ÷ 335 MB a chat
+   Get ONE token back.                  = 185 chats. Hard stop.
+   The math units mostly wait.          Chat 186 waits in the queue.
+
+   a BANDWIDTH problem                  a CAPACITY problem
+```
+
+So read every trick as an answer to two questions: **which wall, and what does it get back?**
+
+| Trick | Wall it hits | What it gets back |
+|---|---|---|
+| **Prefix caching** | wasted prefill work | stop re-reading the same 1,800 tokens on every call |
+| **Continuous batching** | idle time | a finished slot refills at once instead of waiting |
+| **PagedAttention** | **capacity** | stop reserving cache space nobody uses |
+| **Quantization** | **both** | fewer bytes to move, *and* more free space |
+| **Speculative decoding** | **bandwidth** | 4 tokens per weight-read instead of 1 |
+| **Chunked prefill** | fairness | one giant prompt stops freezing 184 other chats |
+
+**None of the six needs retraining.** Two of them do touch the model — quantization stores the weights in fewer bits, and speculative decoding adds a second small model — but neither trains anything.
+
+## The six in detail
 
 | Trick | Problem it fixes | How it works | ShopBot |
 |---|---|---|---|
-| **Continuous batching** | In a fixed batch, everyone waits for the slowest request. | As soon as one request ends, a new one takes its slot right away. | A "thanks!" reply ends after 8 tokens. A refund explanation runs 300. Without this, that slot idles for 292 steps ≈ **2.9 s of dead GPU**. |
-| **PagedAttention** | Saving max-length cache space per user wastes most of the memory. | Keep the cache in small fixed blocks, like an OS uses pages. Under 4% waste. | Reserving the full 8,192-token window per chat costs 1.05 GB each → only **59 chats fit**. Paging it → back to **185**. A 3× win for free. |
 | **Prefix caching** | Many users send the same long system prompt. You prefill it every time. | Keep the KV cache of the shared start, and reuse it. | The 1,800-token system prompt is identical on every request. See below. |
-| **Chunked prefill** | One huge prompt blocks everyone else's streaming. | Cut the prefill into chunks. Mix them between decode steps. | One user pastes a 60,000-token returns policy. That prefill takes ~3.5 s, and **all 184 other chats freeze** while it runs. |
-| **Speculative decoding** | Decode waits on memory, so the GPU sits idle most of the time. | A small draft model guesses k tokens ahead. The big model checks them all in one pass. Wrong guesses are thrown away, so **quality does not change**. | Llama-3-1B drafts 4 tokens, the 8B checks all 4 in one read of its weights. ~3 of 4 accepted → reply time **1.2 s → 0.5 s**. |
+| **Continuous batching** | In a fixed batch, everyone waits for the slowest request. | As soon as one request ends, a new one takes its slot right away. | Two picked numbers, not calculated ones: a "thanks!" reply ends at **8** tokens, and a long refund explanation runs **300** (our usual reply is 120 — refund cases run longer). Without this, that slot idles `300 − 8 = 292` steps × 10 ms ≈ **2.9 s of dead GPU**. |
+| **PagedAttention** | Saving max-length cache space per user wastes most of the memory. | Keep the cache in small fixed blocks, like an OS uses pages. Under 4% waste. | Reserving the full 8,192-token window per chat costs 1.05 GB each → only **59 chats fit**. Paging it → back to **185**. A 3× win for free. |
 | **Quantization** | The weights are the thing you keep re-reading. | Store them in fewer bits → fewer bytes to move → faster and cheaper. | 16 GB → 8 GB. See below. |
+| **Speculative decoding** | Decode waits on memory, so the GPU sits idle most of the time. | A small draft model guesses k tokens ahead. The big model checks them all in one pass. Wrong guesses are thrown away, so **quality does not change**. | Llama-3-1B drafts 4 tokens, the 8B checks all 4 in one read of its weights. ~3 of 4 accepted → reply time **1.2 s → 0.5 s**. |
+| **Chunked prefill** | One huge prompt blocks everyone else's streaming. | Cut the prefill into chunks. Mix them between decode steps. | One user pastes a 60,000-token returns policy. That prefill takes ~3.5 s, and **all 184 other chats freeze** while it runs. |
+
+## How do 185 chats share one forward pass?
+
+This is the part batching never explains, and it is worth ten seconds.
+
+One decode step reads the 16 GB of weights **once** and hands **every chat in the batch** a token. Not one token total — one token *each*.
+
+```
+   IN: one new token per chat          OUT: one next token per chat
+   ┌────────────────────────┐          ┌────────────────────────┐
+   │ row 0     user A       │          │ row 0    →  A's token  │
+   │ row 1     user B       │   same   │ row 1    →  B's token  │
+   │ row 2     user C       │  16 GB   │ row 2    →  C's token  │
+   │   ...                  │ weights  │   ...                  │
+   │ row 184   user Z       │          │ row 184  →  Z's token  │
+   └────────────────────────┘          └────────────────────────┘
+
+   read 16 GB once   →   185 tokens out   →   ~10 ms
+```
+
+**So why don't the chats mix?** Two reasons. Neither is a safety check — both fall straight out of the maths and the memory layout.
+
+1. **Matrix multiply keeps rows apart.** In `X @ W`, output row *i* is built from input row *i* and nothing else. The weights `W` are shared by all 185 rows. The rows never touch each other.
+2. **Attention is the only place where tokens look at each other — and every chat owns its own KV cache.** Row 3's query attends only to row 3's saved keys and values. It is never handed row 4's cache, so it cannot see row 4's conversation.
+
+**The bookkeeping that ties a row to a person:**
+
+```
+request arrives  →  gets an ID  →  scheduler drops it into a free row
+                 →  a block table maps that ID to its own KV pages
+                 →  after the step, row i's new token is written back
+                    to request i's open connection
+```
+
+That block table **is** PagedAttention from the table above. It works exactly like an operating system's page table: request 3 → KV blocks `[7, 12, 45, 46]`. When the attention kernel computes row 3, it reads only those blocks.
+
+> **The cost shape this creates.** Weights are shared, and sharing them is free. The KV cache is private, and you pay for it per person. That is why user 186 costs you **335 MB of memory** and almost **no extra time** — the 16 GB read was already happening anyway.
+>
+> It is also why a small batch is wasteful:
+>
+> ```
+>  10 chats in the batch  →  read 16 GB, get   10 tokens
+> 185 chats in the batch  →  read 16 GB, get  185 tokens
+> ```
+>
+> Same read, same ~10 ms, **18× the output**. Nobody's reply gets faster — the *server* gets 18× cheaper per token.
+
+## Which one do you reach for?
+
+Never all six. Pick by the number your users are actually complaining about.
+
+| The complaint | Reach for | What it costs you |
+|---|---|---|
+| "It takes ages to start replying" (**TTFT**) | Prefix caching → chunked prefill | one string moved; then a config flag |
+| "It types too slowly" (**TPOT**) | Quantization → speculative decoding | measure quality; then a 2nd model to run |
+| "The bill is too high" (**cost/chat**) | Continuous batching + PagedAttention → quantization | free, free, then measure |
+| "Users get queued at peak" (**capacity**) | PagedAttention → quantization | free, then measure |
+
+> **The order in practice.** Prefix caching first — it is free and it is one line. Continuous batching and PagedAttention next, except they are already default-on in vLLM, so check before you "add" them. Only then quantization, and only after you measure it on **your** task. Speculative decoding and chunked prefill are last: each fixes one specific complaint and each costs you a second model or a tuning knob.
 
 ## Prefix caching is your free win
 
@@ -328,14 +454,45 @@ Numbers can be stored with more or fewer bits. Fewer bits = smaller and faster, 
 | FP8 (8-bit) | ~8 GB | The common production choice in 2026. Loss is usually tiny. |
 | INT4 (4-bit) | ~4 GB | Laptops, one small GPU. You can see the quality drop. |
 
-> **ShopBot on FP8.** Weights drop 16 GB → 8 GB, so two things improve at once:
+> **ShopBot on FP8, step by step.**
 >
-> ```
-> free KV space   62 GB  →  70 GB     chats fit:  185  →  209
-> bytes per token  16 GB  →   8 GB     TPOT:      10 ms →  ~6 ms
-> ```
+> FP8 keeps every weight in 8 bits instead of 16. So the model gets half as big: **16 GB → 8 GB**. That is the only change.
 >
-> Both come from the same cause: fewer bytes to move. This is why quantization shows up as both a speed lever and a capacity lever.
+> It pays you twice, because weights use **two** different resources: memory **space**, and memory **bandwidth**.
+
+**Win 1 — more chats fit. (space)**
+
+The GPU has 80 GB. The weights and the KV cache share it. Whatever the weights give up, the cache takes.
+
+```
+                                    FP16 (16 GB)        FP8 (8 GB)
+  step 1   the whole GPU              80 GB               80 GB
+  step 2   take out the weights     − 16 GB             −  8 GB
+                                    ────────            ────────
+                                      64 GB               72 GB
+  step 3   take out ~2 GB overhead  −  2 GB             −  2 GB
+                                    ────────            ────────
+           free space for KV cache    62 GB               70 GB
+
+  step 4   one chat needs 335 MB
+           62,000 MB ÷ 335 MB  =  185 chats
+           70,000 MB ÷ 335 MB  =  209 chats
+```
+
+The 8 GB you took off the weights did not vanish. It **became KV cache**. Same GPU, same model, **+24 chats**.
+
+**Win 2 — each token arrives faster. (bandwidth)**
+
+Every decode step streams the whole weight file past the GPU cores to produce one token.
+
+```
+  FP16    move 16 GB per token   →   TPOT   10 ms
+  FP8     move  8 GB per token   →   TPOT   ~6 ms
+```
+
+Half the bytes to move, so nearly half the time. **Nearly**, not exactly: each step also reads the KV cache, and that part did not shrink — with 209 chats instead of 185 it actually grew a little. Only the weight half of the traffic halved.
+
+> **One change. Both walls.** Fewer bits means fewer bytes, and bytes cost you space *and* bandwidth. That is the whole reason quantization shows up as a capacity lever and a speed lever at the same time.
 
 Two rules:
 
@@ -360,17 +517,39 @@ Public "needle in a haystack" tests hide this. Finding one odd sentence in a pil
 
 # Part 5 — WHAT You Should Choose
 
-### 1. Which metric are you optimising?
+### 1. Which number are you fixing?
 
-Decide this **before** you change anything. If you optimise the wrong one, you waste weeks.
+You cannot improve everything at once. Pick **one** number. The other two stop being targets and become limits you must not break.
 
-| If your product is | Optimise | Ignore |
+**Step 1 — the three numbers** (from Part 2):
+
+```
+  TTFT         how long until the FIRST word appears    ←  lives in PREFILL
+  TPOT         how fast each word comes after that      ←  lives in DECODE
+  Throughput   tokens/sec across ALL users = your bill  ←  lives in both
+```
+
+**Step 2 — your product picks one:**
+
+| Your product is | Fix this | Because |
 |---|---|---|
-| Interactive chat | TTFT | Throughput |
-| Batch / offline work | Throughput | TTFT, completely |
-| Voice / realtime | TPOT | — |
+| Interactive chat | **TTFT** | the user is staring at an empty box, waiting |
+| Voice / realtime | **TPOT** | speech needs a steady ~25 tokens/sec or it breaks up |
+| Batch / offline | **Throughput** | nobody is watching. Only the total matters |
 
-> **ShopBot: TTFT.** A customer with a broken order is angry already. 150 ms feels instant; 2 s feels broken. Nobody has ever complained that a chatbot replied at 100 tokens/sec instead of 130.
+**Step 3 — the number tells you the wall, and the wall tells you the lever:**
+
+| Fixing | The wall in your way | Reach for (Part 4) |
+|---|---|---|
+| **TTFT** | prefill work | shorten the prompt → prefix caching → chunked prefill |
+| **TPOT** | bandwidth (Wall 1) | quantization → speculative decoding |
+| **Throughput** | capacity (Wall 2) | continuous batching + PagedAttention → quantization |
+
+That last table is the whole file in three rows. Everything in Parts 1–4 exists to explain why those rows are true.
+
+> **Careful with the word "ignore".** You never ignore throughput on a chat product — throughput **is** your bill. You improve TTFT *while holding* throughput and cost inside a budget. One number goes up. The others are limits you keep watching, not numbers you stop measuring.
+
+> **ShopBot: TTFT.** A customer with a broken order is already angry. 150 ms feels instant; 2 s feels broken. Nobody has ever complained that a chatbot replied at 100 tokens/sec instead of 130.
 
 ### 2. Cut cost by 50% — five levers, in order
 
