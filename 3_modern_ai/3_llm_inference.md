@@ -204,9 +204,7 @@ YOUR PROMPT (2,500 tokens)              GENERATED ANSWER (120 tokens)
                                           one token at a time, 120 times
 ```
 
-**Prefill** reads all 2,500 prompt tokens together. The GPU likes this. It is one big job it can split up and do at the same time. It happens **once**.
-
-**Decode** writes the answer one token at a time. Token 2 cannot start until token 1 exists. It happens **120 times**. Each time, the GPU reads all 16 GB of weights just to make a few bytes of output.
+**Prefill happens once. Decode happens 120 times** — and each of those 120 runs reads all 16 GB of weights just to make a few bytes of output.
 
 > **ShopBot's real clock.**
 >
@@ -230,15 +228,7 @@ YOUR PROMPT (2,500 tokens)              GENERATED ANSWER (120 tokens)
 
 > **ShopBot:** TTFT = **150 ms** (the wait before "I'm" appears). TPOT = **10 ms** (100 words per second flowing after that). Add 2,000 more tokens of retrieved policy and TTFT goes to ~270 ms — but TPOT stays at 10 ms. A longer prompt makes the *start* slower, never the *streaming*.
 
-These two pull in different directions. Different products care about different ones:
-
-| Product | Optimise for | Why | Real example |
-|---|---|---|---|
-| A chat UI | **TTFT** | The user is watching an empty box. | ShopBot. Above 500 ms, users start clicking again. |
-| Batch summarising | **throughput** | Nobody is watching. Total tokens/sec is all that matters. | Summarise 10,000 support tickets overnight. 8 hours or 9 hours — nobody cares. |
-| A voice agent | **TPOT** | Speech must not break mid-sentence. | ShopBot on the phone. Speech needs ~25 tokens/sec steady. A 200 ms gap sounds broken. |
-
-Say this difference out loud in a design interview and you sound senior.
+Which of the two matters more depends on your product — that is the first decision in Part 5. Say this difference out loud in a design interview and you sound senior.
 
 ---
 
@@ -413,14 +403,7 @@ That block table **is** PagedAttention from the table above. It works exactly li
 
 ## Which one do you reach for?
 
-Never all six. Pick by the number your users are actually complaining about.
-
-| The complaint | Reach for | What it costs you |
-|---|---|---|
-| "It takes ages to start replying" (**TTFT**) | Prefix caching → chunked prefill | one string moved; then a config flag |
-| "It types too slowly" (**TPOT**) | Quantization → speculative decoding | measure quality; then a 2nd model to run |
-| "The bill is too high" (**cost/chat**) | Continuous batching + PagedAttention → quantization | free, free, then measure |
-| "Users get queued at peak" (**capacity**) | PagedAttention → quantization | free, then measure |
+Never all six. Pick by the number your users are actually complaining about — Part 5 turns that number into a lever. What matters here is the order you try them in.
 
 > **The order in practice.** Prefix caching first — it is free and it is one line. Continuous batching and PagedAttention next, except they are already default-on in vLLM, so check before you "add" them. Only then quantization, and only after you measure it on **your** task. Speculative decoding and chunked prefill are last: each fixes one specific complaint and each costs you a second model or a tuning knob.
 
@@ -529,23 +512,15 @@ You cannot improve everything at once. Pick **one** number. The other two stop b
   Throughput   tokens/sec across ALL users = your bill  ←  lives in both
 ```
 
-**Step 2 — your product picks one:**
+**Step 2 — your product picks one number, and that number picks your lever:**
 
-| Your product is | Fix this | Because |
-|---|---|---|
-| Interactive chat | **TTFT** | the user is staring at an empty box, waiting |
-| Voice / realtime | **TPOT** | speech needs a steady ~25 tokens/sec or it breaks up |
-| Batch / offline | **Throughput** | nobody is watching. Only the total matters |
+| Your product is | Fix this | The wall in your way | Reach for (Part 4) |
+|---|---|---|---|
+| **Interactive chat** — the user stares at an empty box | **TTFT** | prefill work | shorten the prompt → prefix caching → chunked prefill |
+| **Voice / realtime** — speech needs a steady ~25 tokens/sec | **TPOT** | bandwidth (Wall 1) | quantization → speculative decoding |
+| **Batch / offline** — nobody is watching, only the total matters | **Throughput** | capacity (Wall 2) | continuous batching + PagedAttention → quantization |
 
-**Step 3 — the number tells you the wall, and the wall tells you the lever:**
-
-| Fixing | The wall in your way | Reach for (Part 4) |
-|---|---|---|
-| **TTFT** | prefill work | shorten the prompt → prefix caching → chunked prefill |
-| **TPOT** | bandwidth (Wall 1) | quantization → speculative decoding |
-| **Throughput** | capacity (Wall 2) | continuous batching + PagedAttention → quantization |
-
-That last table is the whole file in three rows. Everything in Parts 1–4 exists to explain why those rows are true.
+That table is the whole file in three rows. Everything in Parts 1–4 exists to explain why those rows are true.
 
 > **Careful with the word "ignore".** You never ignore throughput on a chat product — throughput **is** your bill. You improve TTFT *while holding* throughput and cost inside a budget. One number goes up. The others are limits you keep watching, not numbers you stop measuring.
 
